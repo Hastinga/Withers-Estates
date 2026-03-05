@@ -1,75 +1,117 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="utf-8">
-<title>Withers Estates Lot Map</title>
+  <meta charset="utf-8" />
+  <title>Withers Estates | Lot Map</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { margin:0; font-family: Arial, sans-serif; background:#fff; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 18px; }
+    h1 { margin: 0 0 12px; font-size: 28px; }
+    #svgWrap { border: 1px solid #eee; border-radius: 12px; overflow: hidden; }
+    svg { width: 100%; height: auto; display: block; background: #fff; }
 
-<link href="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.css" rel="stylesheet">
-<script src="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.js"></script>
+    .lot { fill: rgba(0,0,0,0.03); stroke: #111; stroke-width: 1.5; cursor: pointer; }
+    .lot:hover { fill: rgba(0,0,0,0.08); }
 
-<style>
-body { margin:0; padding:0; }
-#map { width:100%; height:100vh; }
-</style>
-
+    /* simple popup */
+    #popup {
+      position: fixed;
+      right: 18px;
+      top: 18px;
+      width: 320px;
+      background: #fff;
+      border: 1px solid #eee;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,.08);
+      padding: 14px;
+      display: none;
+      z-index: 10;
+    }
+    #popup h3 { margin: 0 0 8px; font-size: 18px; }
+    #popup .meta { font-size: 14px; opacity: .8; margin-bottom: 10px; }
+    #popup ul { margin: 0; padding-left: 18px; }
+    #popup a.btn {
+      display: inline-block; margin-top: 12px; padding: 10px 12px;
+      background:#111; color:#fff; text-decoration:none; border-radius:10px;
+    }
+    #close { float:right; cursor:pointer; opacity:.6; }
+    #close:hover { opacity:1; }
+  </style>
 </head>
-
 <body>
+  <div class="wrap">
+    <h1>Withers Estates</h1>
+    <div id="svgWrap">
+      <svg id="lotSvg" viewBox="0 0 1000 1400" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+  </div>
 
-<div id="map"></div>
+  <div id="popup">
+    <div id="close">✕</div>
+    <h3 id="pTitle"></h3>
+    <div class="meta" id="pMeta"></div>
+    <ul id="pNotes"></ul>
+    <a class="btn" id="pReserve" href="#" target="_blank" rel="noopener">Reserve Lot</a>
+  </div>
 
-<script>
+  <script>
+    const LOTS_JSON_URL = 'withers-estates-lots1.json';
 
-mapboxgl.accessToken = 'pk.eyJ1IjoiaGFzdGluZ2EiLCJhIjoiY2tvZW9rYzU1MDd6eTJwbWlkdzNwOXFxOCJ9.UmUYmDzNPjEz5cuq2SkGiw';
+    // Temporary: a single reserve link (you can later make per-lot)
+    const DEFAULT_RESERVE_URL = 'https://form.jotform.com/260066170475051';
 
-const map = new mapboxgl.Map({
-container: 'map',
-style: 'mapbox://styles/mapbox/light-v11',
-center: [-111.78, 43.82],
-zoom: 15
-});
+    const svg = document.getElementById('lotSvg');
+    const popup = document.getElementById('popup');
+    const pTitle = document.getElementById('pTitle');
+    const pMeta  = document.getElementById('pMeta');
+    const pNotes = document.getElementById('pNotes');
+    const pReserve = document.getElementById('pReserve');
+    document.getElementById('close').onclick = () => popup.style.display = 'none';
 
-map.on('load', function () {
+    function polygonPath(points){
+      // points = [{x,y},...]
+      return points.map((pt,i)=> (i===0?`M ${pt.x} ${pt.y}`:`L ${pt.x} ${pt.y}`)).join(' ') + ' Z';
+    }
 
-map.addSource('lots', {
-'type': 'geojson',
-'data': 'withers-estates-lots1.json'
-});
+    async function main(){
+      const data = await fetch(LOTS_JSON_URL).then(r => r.json());
 
-map.addLayer({
-'id': 'lots-fill',
-'type': 'fill',
-'source': 'lots',
-'paint': {
-'fill-color': '#4CAF50',
-'fill-opacity': 0.4
-}
-});
+      // Build lots
+      data.shapes
+        .filter(s => s.type === 'lot' && s.points && s.points.length)
+        .forEach(s => {
+          const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+          path.setAttribute('d', polygonPath(s.points));
+          path.setAttribute('class', 'lot');
+          path.dataset.lot = s.label || s.id;
 
-map.addLayer({
-'id': 'lots-outline',
-'type': 'line',
-'source': 'lots',
-'paint': {
-'line-color': '#000',
-'line-width': 2
-}
-});
+          path.addEventListener('click', () => {
+            // For now: show label + placeholder meta/notes
+            popup.style.display = 'block';
+            pTitle.textContent = path.dataset.lot;
+            pMeta.textContent = 'Click-to-view lot details (next step: connect Google Sheet)';
+            pNotes.innerHTML = '';
+            // sample bullets (we’ll swap these with your sheet data)
+            ['Lot boundaries only map','Interactive lot selection','Reserve link attached'].forEach(t=>{
+              const li = document.createElement('li'); li.textContent=t; pNotes.appendChild(li);
+            });
 
-map.on('click', 'lots-fill', function (e) {
+            pReserve.href = DEFAULT_RESERVE_URL;
+          });
 
-const lot = e.features[0].properties.name || "Lot";
+          svg.appendChild(path);
+        });
 
-new mapboxgl.Popup()
-.setLngLat(e.lngLat)
-.setHTML("<h3>" + lot + "</h3>")
-.addTo(map);
+      // Auto-fit SVG viewBox to your shapes
+      const bb = svg.getBBox();
+      svg.setAttribute('viewBox', `${bb.x} ${bb.y} ${bb.width} ${bb.height}`);
+    }
 
-});
-
-});
-
-</script>
-
+    main().catch(err => {
+      console.error(err);
+      alert('Could not load lot JSON. Check filename/path.');
+    });
+  </script>
 </body>
 </html>
