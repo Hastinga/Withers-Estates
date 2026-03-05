@@ -101,22 +101,32 @@
       filter: drop-shadow(0 0 8px var(--hoverGlow));
     }
 
-    /* Big readable labels */
-  .lotLabel{
-  font-size: 10px;
-  font-weight: 500;
-  fill: #111;
-  pointer-events:none;
+    /* Your current lot label style */
+    .lotLabel{
+      font-size: 10px;
+      font-weight: 500;
+      fill: #111;
+      pointer-events:none;
+      paint-order: stroke fill;
+      stroke: rgba(255,255,255,.95);
+      stroke-width: 2px;
+    }
 
-  paint-order: stroke fill;
-  stroke: rgba(255,255,255,.95);
-  stroke-width: 2px;
-}
-
-    /* Small badge text (premium lots) */
+    /* Premium badge text (optional) */
     .badge{
-  font-size: 10px;
-  font-weight: 800;
+      font-size: 10px;
+      font-weight: 800;
+      fill: #111;
+      pointer-events:none;
+      paint-order: stroke fill;
+      stroke: rgba(255,255,255,.95);
+      stroke-width: 4px;
+    }
+
+    /* Feature labels (roads, entrance, etc.) */
+    .featureLabel{
+      font-size: 12px;
+      font-weight: 800;
       fill: #111;
       pointer-events:none;
       paint-order: stroke fill;
@@ -185,13 +195,9 @@
     // Label mode: "BLOCK_AND_LOT" shows "B2 - L1", "LOT_ONLY" shows "L1"
     const LABEL_MODE = "BLOCK_AND_LOT";
 
-    // Premium lots rule:
-    // You said: "every lot on the far right will have a temple view, view of the teton mountains, and country luxury views"
-    // Easiest rule: set this list to the exact lot IDs that are premium.
-    // Example: ['B4 - L8','B4 - L9'] etc
+    // Add premium lots if you want badges + extra bullets on click
     const PREMIUM_LOTS = new Set([
-      // TODO: paste your far-right lot IDs here, like:
-      // 'B5 - L1','B5 - L2'
+      // 'B1 - L6', 'B1 - L7'
     ]);
 
     const svg = document.getElementById('lotSvg');
@@ -347,6 +353,7 @@
     }
 
     function applyFilter(){
+      // lot shapes
       const lots = svg.querySelectorAll('[data-status]');
       lots.forEach(el => {
         const st = el.getAttribute('data-status') || 'unlisted';
@@ -354,7 +361,7 @@
         el.style.display = show ? '' : 'none';
       });
 
-      // labels & badges match their lot via data-for
+      // lot labels + badges
       const texts = svg.querySelectorAll('[data-for]');
       texts.forEach(t => {
         const st = t.getAttribute('data-status') || 'unlisted';
@@ -403,16 +410,18 @@
       // Layer groups so labels always on top
       const gLots = document.createElementNS('http://www.w3.org/2000/svg','g');
       const gLabels = document.createElementNS('http://www.w3.org/2000/svg','g');
+      const gFeatureLabels = document.createElementNS('http://www.w3.org/2000/svg','g');
+
       svg.appendChild(gLots);
       svg.appendChild(gLabels);
+      svg.appendChild(gFeatureLabels);
 
-      // If your JSON has non-lot shapes, we’ll draw them very lightly in the back.
-      // Anything with a label/id that normalizes to a lot will be treated as a lot.
       for (const s of shapes){
-        const lotKey = normalizeLotId(s.label || s.name || s.id || '');
+        const rawName = (s.label || s.name || '');
+        const lotKey = normalizeLotId(rawName || s.id || '');
         const isLot = /^B\d+\s*-\s*L\d+$/i.test(lotKey);
 
-        // If it doesn't look like a lot, draw it faint and skip labels/click
+        // FEATURES / ROADS / AMENITIES (anything not a lot)
         if (!isLot){
           const bg = document.createElementNS('http://www.w3.org/2000/svg','path');
           bg.setAttribute('d', polygonPath(s.points));
@@ -420,9 +429,24 @@
           bg.setAttribute('stroke', 'rgba(0,0,0,0.25)');
           bg.setAttribute('stroke-width', '2');
           gLots.appendChild(bg);
+
+          // Add feature label if present in JSON as name/label
+          const featureName = String(rawName || '').trim();
+          if (featureName){
+            const c = polygonCentroid(s.points);
+            const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+            t.setAttribute('x', c.x);
+            t.setAttribute('y', c.y);
+            t.setAttribute('text-anchor', 'middle');
+            t.setAttribute('dominant-baseline', 'middle');
+            t.setAttribute('class', 'featureLabel');
+            t.textContent = featureName;
+            gFeatureLabels.appendChild(t);
+          }
           continue;
         }
 
+        // LOTS
         const row = sheetByLot.get(lotKey) || null;
         const status = row ? row['Status'] : 'Unlisted';
         const price  = row ? row['Price'] : '';
@@ -432,7 +456,6 @@
 
         const stKey = statusKey(status);
 
-        // Lot polygon
         const path = document.createElementNS('http://www.w3.org/2000/svg','path');
         path.setAttribute('d', polygonPath(s.points));
         path.setAttribute('fill', fillForStatus(status));
@@ -465,7 +488,6 @@
             pNotes.appendChild(li);
           }
 
-          // Premium badge info (optional)
           if (PREMIUM_LOTS.has(lotKey)){
             const li = document.createElement('li');
             li.textContent = 'Temple view • Teton views • Country luxury setting';
@@ -477,7 +499,6 @@
 
         gLots.appendChild(path);
 
-        // Lot label (centered, readable)
         const c = polygonCentroid(s.points);
         const label = document.createElementNS('http://www.w3.org/2000/svg','text');
         label.setAttribute('x', c.x);
@@ -490,7 +511,6 @@
         label.textContent = formatLabel(lotKey);
         gLabels.appendChild(label);
 
-        // Premium badge (optional) – sits slightly below the label
         if (PREMIUM_LOTS.has(lotKey)){
           const badge = document.createElementNS('http://www.w3.org/2000/svg','text');
           badge.setAttribute('x', c.x);
