@@ -237,7 +237,7 @@
 
       // Draw lots
       shapeData.shapes
-        .filter(s => s.type === 'lot' && Array.isArray(s.points) && s.points.length)
+        .filter(s => Array.isArray(s.points) && s.points.length)
         .forEach(s => {
           const lotKey = normalizeLotId(s.label || s.id);
           const row = sheetMap.get(lotKey);
