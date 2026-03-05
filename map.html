@@ -14,186 +14,84 @@
       --bg:#ffffff;
       --card:#ffffff;
       --muted:#6b7280;
+      --road:#ffffff;
+      --roadOutline:#111;
     }
 
-    body{
-      margin:0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: var(--bg);
-      color:#111;
-    }
-
-    .wrap{
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 18px 16px 40px;
-    }
+    body{ margin:0; font-family: Arial, Helvetica, sans-serif; background:var(--bg); color:#111; }
+    .wrap{ max-width:1200px; margin:0 auto; padding:18px 16px 40px; }
 
     h1{
-      margin: 0 0 6px;
-      font-size: 30px;
-      text-align: center;
-      letter-spacing: .2px;
+      margin:0 0 6px;
+      font-size:30px;
+      text-align:center; /* centered title */
+      letter-spacing:.2px;
     }
 
-    #debug{
-      text-align:center;
-      margin: 0 0 10px;
-      font-size: 13px;
-      color: var(--muted);
-    }
+    #debug{ text-align:center; margin:0 0 10px; font-size:13px; color:var(--muted); }
 
     .legend{
-      display:flex;
-      gap:12px;
-      align-items:center;
-      justify-content:center;
-      margin: 0 0 14px;
-      font-size: 13px;
-      color:#111;
-      flex-wrap:wrap;
+      display:flex; gap:12px; align-items:center; justify-content:center;
+      margin:0 0 14px; font-size:13px; flex-wrap:wrap;
     }
-    .dot{
-      width:10px;height:10px;border-radius:50%;
-      display:inline-block;
-      margin-right:6px;
-      border:1px solid rgba(0,0,0,.25);
-      vertical-align:middle;
-    }
+    .dot{ width:10px;height:10px;border-radius:50%; display:inline-block; margin-right:6px;
+      border:1px solid rgba(0,0,0,.25); vertical-align:middle; }
 
-    .stage{
-      display:grid;
-      grid-template-columns: 1fr 320px;
-      gap: 18px;
-      align-items:start;
-    }
+    .stage{ display:grid; grid-template-columns: 1fr 320px; gap:18px; align-items:start; }
+    .mapCard{ background:var(--card); border:1px solid rgba(0,0,0,.08); border-radius:12px; overflow:hidden; }
 
-    .mapCard{
-      background: var(--card);
-      border: 1px solid rgba(0,0,0,.08);
-      border-radius: 12px;
-      overflow:hidden;
-    }
+    .svgWrap{ width:100%; height:720px; background:#fff; position:relative; }
+    svg{ width:100%; height:100%; display:block; }
 
-    /* SVG container */
-    .svgWrap{
-      width:100%;
-      height: 720px; /* adjust if you want taller/shorter */
-      background:#fff;
-      position:relative;
-    }
-
-    svg{
-      width:100%;
-      height:100%;
-      display:block;
-    }
-
-    /* Popup (right panel) */
     .panel{
-      background: var(--card);
-      border: 1px solid rgba(0,0,0,.08);
-      border-radius: 12px;
-      padding: 14px 14px 12px;
-      position: sticky;
-      top: 14px;
+      background:var(--card);
+      border:1px solid rgba(0,0,0,.08);
+      border-radius:12px;
+      padding:14px 14px 12px;
+      position:sticky; top:14px;
     }
-
-    .panelTop{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap: 10px;
-    }
-
-    .panel h2{
-      margin:0;
-      font-size: 18px;
-      line-height: 1.2;
-    }
-
-    .closeBtn{
-      border:none;
-      background:transparent;
-      font-size:18px;
-      cursor:pointer;
-      color:#666;
-    }
-
-    .meta{
-      margin: 8px 0 0;
-      font-size: 13px;
-      color: var(--muted);
-    }
-
-    .kv{
-      margin: 10px 0 0;
-      padding-left: 18px;
-      font-size: 14px;
-      line-height: 1.35;
-    }
+    .panelTop{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+    .panel h2{ margin:0; font-size:18px; line-height:1.2; }
+    .closeBtn{ border:none; background:transparent; font-size:18px; cursor:pointer; color:#666; }
+    .meta{ margin:8px 0 0; font-size:13px; color:var(--muted); }
+    .kv{ margin:10px 0 0; padding-left:18px; font-size:14px; line-height:1.35; }
 
     .btn{
-      display:inline-block;
-      margin-top: 12px;
-      padding: 10px 12px;
-      border-radius: 10px;
-      border: 1px solid rgba(0,0,0,.15);
-      background:#111;
-      color:#fff;
-      text-decoration:none;
-      font-weight: 700;
-      font-size: 14px;
-      text-align:center;
+      display:inline-block; margin-top:12px; padding:10px 12px;
+      border-radius:10px; border:1px solid rgba(0,0,0,.15);
+      background:#111; color:#fff; text-decoration:none; font-weight:700; font-size:14px; text-align:center;
     }
+    .hint{ font-size:12px; color:var(--muted); margin-top:10px; line-height:1.35; }
 
-    .hint{
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 10px;
-      line-height: 1.35;
-    }
+    /* CLICKABLE LOTS */
+    .lot{ cursor:pointer; transition:opacity .12s ease; }
+    .lot:hover{ opacity:.92; }
 
-    /* Lot styles */
-    .lot{
-      cursor:pointer;
-      transition: opacity .12s ease, transform .06s ease;
-    }
-    .lot:hover{
-      opacity: .92;
-    }
+    /* Roads (non-clickable) */
+    .road{ pointer-events:none; }
 
-    /* Outline consistent */
-    .lotOutline{
-      stroke: var(--outline);
-      stroke-width: 3;
-      fill: transparent;
-      pointer-events:none;
-    }
-
+    /* Lot labels */
     .lotLabel{
-      font-size: 14px;
-      font-weight: 700;
-      fill: #111;
+      font-size:14px;
+      font-weight:800;
+      fill:#111;
       pointer-events:none;
-      paint-order: stroke;
-      stroke: rgba(255,255,255,.9);
-      stroke-width: 3px; /* halo so text stays readable */
+      paint-order:stroke;
+      stroke:rgba(255,255,255,.95);
+      stroke-width:3px;
     }
 
-    /* Mobile */
     @media (max-width: 980px){
-      .stage{ grid-template-columns: 1fr; }
-      .panel{ position: relative; top: 0; }
-      .svgWrap{ height: 620px; }
+      .stage{ grid-template-columns:1fr; }
+      .panel{ position:relative; top:0; }
+      .svgWrap{ height:620px; }
     }
   </style>
 </head>
 
 <body>
   <div class="wrap">
-    <h1 id="title">Withers Estates</h1>
-
+    <h1>Withers Estates</h1>
     <div id="debug">Loading…</div>
 
     <div class="legend">
@@ -205,7 +103,6 @@
     <div class="stage">
       <div class="mapCard">
         <div class="svgWrap">
-          <!-- This SVG is a “flat map” – no Mapbox background. Just your boundaries. -->
           <svg id="lotSvg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet"></svg>
         </div>
       </div>
@@ -218,50 +115,41 @@
         <div class="meta" id="pMeta">Select a lot to see details.</div>
         <ul class="kv" id="pNotes"></ul>
         <a class="btn" id="pReserve" href="#" target="_blank" rel="noopener">Reserve Lot</a>
-        <div class="hint">
-          Tip: update your Google Sheet and refresh — colors and details update automatically.
-        </div>
+        <div class="hint">Update your Google Sheet → refresh to see color/detail changes.</div>
       </div>
     </div>
   </div>
 
   <script>
-    // ====== SETTINGS YOU MAY EDIT ======
-    // Your tracer JSON file in this repo (same folder as map.html)
+    // ====== YOUR SOURCES ======
     const LOTS_JSON_URL = 'withers-estates-lots 1.json';
-
-    // Your published Google Sheet CSV (you already provided this)
     const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRLq9bYnDWEQnE4-GUmwyYStBWKlOdrCy36utkl0cHahd7u-7YlkHn-0BgmS6L9NyH_Qj6nPzi4IPs3/pub?output=csv';
-
-    // Reserve link fallback if your sheet Reserve column is empty
     const DEFAULT_RESERVE_URL = 'https://form.jotform.com/260066170475051';
-    // ===================================
+    // ==========================
 
     const svg = document.getElementById('lotSvg');
     const debugEl = document.getElementById('debug');
 
-    const panel = document.getElementById('panel');
     const pTitle = document.getElementById('pTitle');
     const pMeta  = document.getElementById('pMeta');
     const pNotes = document.getElementById('pNotes');
     const pReserve = document.getElementById('pReserve');
+
     document.getElementById('close').onclick = () => {
-      // simple “clear”
       pTitle.textContent = 'Click a lot';
       pMeta.textContent = 'Select a lot to see details.';
       pNotes.innerHTML = '';
       pReserve.href = DEFAULT_RESERVE_URL;
     };
 
-    // --- helpers ---
     function polygonPath(points){
-      // SVG path like: M x y L x y ...
       return points.map((p,i)=> (i===0 ? `M ${p.x} ${p.y}` : `L ${p.x} ${p.y}`)).join(' ') + ' Z';
     }
 
+    // robust centroid (works on your rectangles + odd shapes)
     function polygonCentroid(points){
       let x = 0, y = 0, a = 0;
-      for (let i = 0, j = points.length - 1; i < points.length; j = i++){
+      for (let i=0, j=points.length-1; i<points.length; j=i++){
         const p1 = points[j], p2 = points[i];
         const f = (p1.x * p2.y) - (p2.x * p1.y);
         a += f;
@@ -274,6 +162,10 @@
         return { x: avg.x / points.length, y: avg.y / points.length };
       }
       return { x: x / (6*a), y: y / (6*a) };
+    }
+
+    function getCssVar(name){
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
     }
 
     function normalizeLotId(raw){
@@ -298,10 +190,6 @@
       return getCssVar('--available');
     }
 
-    function getCssVar(name){
-      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-    }
-
     function parseMoney(val){
       if (val == null) return '';
       const n = String(val).replace(/[^0-9.]/g,'').trim();
@@ -312,7 +200,6 @@
     }
 
     function parseCSV(text){
-      // Small CSV parser (handles quoted commas)
       const rows = [];
       let row = [];
       let cur = '';
@@ -322,20 +209,10 @@
         const c = text[i];
         const next = text[i+1];
 
-        if (c === '"' && inQuotes && next === '"'){
-          cur += '"'; i++;
-          continue;
-        }
+        if (c === '"' && inQuotes && next === '"'){ cur += '"'; i++; continue; }
+        if (c === '"'){ inQuotes = !inQuotes; continue; }
 
-        if (c === '"'){
-          inQuotes = !inQuotes;
-          continue;
-        }
-
-        if (c === ',' && !inQuotes){
-          row.push(cur); cur='';
-          continue;
-        }
+        if (c === ',' && !inQuotes){ row.push(cur); cur=''; continue; }
 
         if ((c === '\n' || c === '\r') && !inQuotes){
           if (c === '\r' && next === '\n') i++;
@@ -344,16 +221,13 @@
           row = []; cur='';
           continue;
         }
-
         cur += c;
       }
 
-      // last cell
       if (cur.length || row.length){
         row.push(cur);
         if (row.some(v => String(v).trim() !== '')) rows.push(row);
       }
-
       return rows;
     }
 
@@ -371,85 +245,109 @@
     }
 
     function setViewBoxToFit(allPoints){
-      // Fit SVG viewBox to your traced shapes with padding
       const xs = allPoints.map(p => p.x);
       const ys = allPoints.map(p => p.y);
       const minX = Math.min(...xs), maxX = Math.max(...xs);
       const minY = Math.min(...ys), maxY = Math.max(...ys);
       const pad = 25;
-      const w = (maxX - minX) + pad*2;
-      const h = (maxY - minY) + pad*2;
-      svg.setAttribute('viewBox', `${minX-pad} ${minY-pad} ${w} ${h}`);
+      svg.setAttribute('viewBox', `${minX-pad} ${minY-pad} ${(maxX-minX)+pad*2} ${(maxY-minY)+pad*2}`);
+    }
+
+    // Optional: label format — set to "LOT_ONLY" if you only want "L1" etc.
+    const LABEL_MODE = "BLOCK_AND_LOT"; // "BLOCK_AND_LOT" or "LOT_ONLY"
+    function formatLabel(lotKey){
+      if (!lotKey) return '';
+      if (LABEL_MODE === "LOT_ONLY"){
+        const m = lotKey.match(/L\s*(\d+)/i);
+        return m ? `L${m[1]}` : lotKey;
+      }
+      return lotKey; // default: "B2 - L1"
     }
 
     async function main(){
-      // Load lots JSON
       const lotsRes = await fetch(LOTS_JSON_URL, { cache: 'no-store' });
       if (!lotsRes.ok) throw new Error(`Lots JSON failed: ${lotsRes.status}`);
       const shapeData = await lotsRes.json();
 
-      // Load sheet CSV
       const csvRes = await fetch(SHEET_CSV_URL, { cache: 'no-store' });
       if (!csvRes.ok) throw new Error(`Sheet CSV failed: ${csvRes.status}`);
       const csvText = await csvRes.text();
-      const csvRows = parseCSV(csvText);
-      const sheetObjs = rowsToObjects(csvRows);
 
-      // Build lookup by normalized Lot ID
+      const sheetObjs = rowsToObjects(parseCSV(csvText));
       const sheetByLot = new Map();
       for (const row of sheetObjs){
         const key = normalizeLotId(row['Lot ID'] || row['LotID'] || row['Lot'] || row['Lot Id'] || '');
-        if (!key) continue;
-        sheetByLot.set(key, row);
+        if (key) sheetByLot.set(key, row);
       }
-
-      debugEl.textContent = `Sheet rows loaded: ${sheetObjs.length} | JSON shapes: ${(shapeData.shapes || []).length}`;
-
-      // Clear SVG
-      svg.innerHTML = '';
 
       const shapes = (shapeData.shapes || []).filter(s => Array.isArray(s.points) && s.points.length);
 
-      // Fit viewBox based on points so it’s always centered/nice
+      // IMPORTANT: separate by type so we can control draw order
+      const roads = shapes.filter(s => String(s.type || '').toLowerCase() === 'road');
+      const lots  = shapes.filter(s => String(s.type || '').toLowerCase() === 'lot');
+      const features = shapes.filter(s => {
+        const t = String(s.type || '').toLowerCase();
+        return t && t !== 'road' && t !== 'lot';
+      });
+
       const allPts = shapes.flatMap(s => s.points);
       if (allPts.length) setViewBoxToFit(allPts);
 
-      // Draw lots
-      for (const s of shapes){
+      debugEl.textContent = `Sheet rows loaded: ${sheetObjs.length} | JSON shapes: ${shapes.length} (lots:${lots.length}, roads:${roads.length})`;
+
+      svg.innerHTML = '';
+
+      // Layer groups so labels ALWAYS stay on top
+      const gRoads = document.createElementNS('http://www.w3.org/2000/svg','g');
+      const gLots  = document.createElementNS('http://www.w3.org/2000/svg','g');
+      const gLabels= document.createElementNS('http://www.w3.org/2000/svg','g');
+
+      svg.appendChild(gRoads);
+      svg.appendChild(gLots);
+      svg.appendChild(gLabels);
+
+      // 1) Draw ROADS first (white fill so it looks like streets)
+      for (const s of roads){
+        const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+        path.setAttribute('d', polygonPath(s.points));
+        path.setAttribute('fill', getCssVar('--road'));
+        path.setAttribute('stroke', getCssVar('--roadOutline'));
+        path.setAttribute('stroke-width', '3');
+        path.setAttribute('class', 'road');
+        gRoads.appendChild(path);
+      }
+
+      // 2) Draw LOTS second
+      for (const s of lots){
         const lotKey = normalizeLotId(s.label || s.name || s.id || '');
         const row = sheetByLot.get(lotKey) || null;
 
-        const status = row ? row['Status'] : 'Available';
-        const price  = row ? row['Price'] : '';
+        const status  = row ? row['Status'] : 'Available';
+        const price   = row ? row['Price'] : '';
         const lotSize = row ? row['Lot Size'] : '';
-        const notes = row ? row['Notes'] : '';
+        const notes   = row ? row['Notes'] : '';
         const reserve = (row && row['Reserve']) ? row['Reserve'] : DEFAULT_RESERVE_URL;
 
         const fillColor = statusToColor(status);
 
-        // Main filled polygon (clickable)
         const path = document.createElementNS('http://www.w3.org/2000/svg','path');
         path.setAttribute('d', polygonPath(s.points));
         path.setAttribute('fill', fillColor);
-        path.setAttribute('class', 'lot');
-        path.setAttribute('data-lot', lotKey);
-
-        // Outline stroke on same path (looks crisp)
         path.setAttribute('stroke', getCssVar('--outline'));
         path.setAttribute('stroke-width', '3');
+        path.setAttribute('class', 'lot');
 
-        // Click -> populate panel
         path.addEventListener('click', () => {
           pTitle.textContent = lotKey || 'Lot';
+
           const parts = [];
           if (status) parts.push(`Status: ${status}`);
-          if (price) parts.push(`Price: ${parseMoney(price) || price}`);
+          if (price)  parts.push(`Price: ${parseMoney(price) || price}`);
           if (lotSize) parts.push(`Lot Size: ${lotSize}`);
-          pMeta.textContent = parts.join(' | ') || '—';
+          pMeta.textContent = parts.join(' • ') || '—';
 
-          // Notes list (bullet points inside one cell will come in separated by newlines)
           pNotes.innerHTML = '';
-          const lines = String(notes || '').split(/\n+/).map(s => s.trim()).filter(Boolean);
+          const lines = String(notes || '').split(/\n+/).map(v => v.trim()).filter(Boolean);
           if (lines.length){
             for (const line of lines){
               const li = document.createElement('li');
@@ -457,7 +355,6 @@
               pNotes.appendChild(li);
             }
           } else {
-            // If no notes, keep it clean
             const li = document.createElement('li');
             li.textContent = 'Click Reserve to claim this lot.';
             pNotes.appendChild(li);
@@ -466,26 +363,26 @@
           pReserve.href = reserve || DEFAULT_RESERVE_URL;
         });
 
-        svg.appendChild(path);
+        gLots.appendChild(path);
 
-        // Label inside each lot
+        // 3) Labels last so NOTHING can cover them
         if (lotKey){
           const c = polygonCentroid(s.points);
-
           const label = document.createElementNS('http://www.w3.org/2000/svg','text');
           label.setAttribute('x', c.x);
           label.setAttribute('y', c.y);
           label.setAttribute('text-anchor', 'middle');
           label.setAttribute('dominant-baseline', 'middle');
           label.setAttribute('class', 'lotLabel');
-          label.textContent = lotKey;
-
-          svg.appendChild(label);
+          label.textContent = formatLabel(lotKey);
+          gLabels.appendChild(label);
         }
       }
+
+      // (Optional) features layer (if you ever use it later)
+      // for (const s of features) { ... }
     }
 
-    // Boot
     main().catch(err => {
       console.error(err);
       debugEl.textContent = `Error: ${err.message}`;
