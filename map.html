@@ -1,117 +1,202 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <title>Withers Estates | Lot Map</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    body { margin:0; font-family: Arial, sans-serif; background:#fff; }
-    .wrap { max-width: 1100px; margin: 0 auto; padding: 18px; }
-    h1 { margin: 0 0 12px; font-size: 28px; }
-    #svgWrap { border: 1px solid #eee; border-radius: 12px; overflow: hidden; }
-    svg { width: 100%; height: auto; display: block; background: #fff; }
+<script>
+  const LOTS_JSON_URL = 'withers-estates-lots1.json';
 
-    .lot { fill: rgba(0,0,0,0.03); stroke: #111; stroke-width: 1.5; cursor: pointer; }
-    .lot:hover { fill: rgba(0,0,0,0.08); }
+  // Your published Google Sheet CSV
+  const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRLq9bYnDWEQnE4-GUmwyYStBWKlOdrCy36utkl0cHahd7u-7YlkHn-0BgmS6L9NyH_Qj6nPzi4IPs3/pub?output=csv';
 
-    /* simple popup */
-    #popup {
-      position: fixed;
-      right: 18px;
-      top: 18px;
-      width: 320px;
-      background: #fff;
-      border: 1px solid #eee;
-      border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0,0,0,.08);
-      padding: 14px;
-      display: none;
-      z-index: 10;
+  // Fallback reserve link if your sheet Reserve column is empty
+  const DEFAULT_RESERVE_URL = 'https://form.jotform.com/260066170475051';
+
+  const svg = document.getElementById('lotSvg');
+  const popup = document.getElementById('popup');
+  const pTitle = document.getElementById('pTitle');
+  const pMeta  = document.getElementById('pMeta');
+  const pNotes = document.getElementById('pNotes');
+  const pReserve = document.getElementById('pReserve');
+  document.getElementById('close').onclick = () => popup.style.display = 'none';
+
+  // ---- Helpers ----
+  function polygonPath(points){
+    return points.map((pt,i)=> (i===0?`M ${pt.x} ${pt.y}`:`L ${pt.x} ${pt.y}`)).join(' ') + ' Z';
+  }
+
+  // Normalize ID so these all match:
+  // "B2 - L8" == "B2-L8" == "Block 2 - Lot 8" == "block2 lot8"
+  function normalizeLotId(raw){
+    if (!raw) return '';
+    const s = String(raw).trim().toUpperCase();
+
+    // Convert "BLOCK 2 - LOT 8" -> "B2 - L8"
+    const m = s.match(/BLOCK\s*(\d+)\s*[-–]?\s*LOT\s*(\d+)/i);
+    if (m) return `B${m[1]} - L${m[2]}`;
+
+    // Convert "B2 L8" or "B2-L8" or "B2 - L8" -> "B2 - L8"
+    const m2 = s.match(/B\s*(\d+)\s*[-– ]?\s*L\s*(\d+)/i);
+    if (m2) return `B${m2[1]} - L${m2[2]}`;
+
+    return s.replace(/\s+/g,' ').trim();
+  }
+
+  function parseMoney(val){
+    if (val == null) return '';
+    const n = String(val).replace(/[^0-9.]/g,'').trim();
+    if (!n) return '';
+    const num = Number(n);
+    if (Number.isNaN(num)) return '';
+    return num.toLocaleString(undefined, { style:'currency', currency:'USD', maximumFractionDigits:0 });
+  }
+
+  function parseCSV(text){
+    // Small CSV parser that handles quoted commas
+    const rows = [];
+    let row = [];
+    let cur = '';
+    let inQuotes = false;
+
+    for (let i=0; i<text.length; i++){
+      const c = text[i];
+      const next = text[i+1];
+
+      if (c === '"' && inQuotes && next === '"'){ // escaped quote
+        cur += '"';
+        i++;
+        continue;
+      }
+      if (c === '"'){
+        inQuotes = !inQuotes;
+        continue;
+      }
+      if (c === ',' && !inQuotes){
+        row.push(cur);
+        cur = '';
+        continue;
+      }
+      if ((c === '\n' || c === '\r') && !inQuotes){
+        if (c === '\r' && next === '\n') i++; // windows newline
+        row.push(cur);
+        cur = '';
+        if (row.length > 1 || row[0] !== '') rows.push(row);
+        row = [];
+        continue;
+      }
+      cur += c;
     }
-    #popup h3 { margin: 0 0 8px; font-size: 18px; }
-    #popup .meta { font-size: 14px; opacity: .8; margin-bottom: 10px; }
-    #popup ul { margin: 0; padding-left: 18px; }
-    #popup a.btn {
-      display: inline-block; margin-top: 12px; padding: 10px 12px;
-      background:#111; color:#fff; text-decoration:none; border-radius:10px;
+    // last cell
+    row.push(cur);
+    if (row.length > 1 || row[0] !== '') rows.push(row);
+
+    return rows;
+  }
+
+  function statusColor(statusRaw){
+    const s = String(statusRaw || '').toLowerCase();
+    if (s.includes('sold')) return 'rgba(220, 53, 69, 0.22)';     // red tint
+    if (s.includes('pend')) return 'rgba(255, 193, 7, 0.28)';     // yellow tint
+    if (s.includes('avail')) return 'rgba(40, 167, 69, 0.22)';    // green tint
+    return 'rgba(0,0,0,0.03)'; // default
+  }
+
+  function notesToBullets(notesRaw){
+    const txt = String(notesRaw || '').trim();
+    if (!txt) return [];
+    // supports bullets separated by newlines or "•"
+    return txt
+      .split(/\n|•/g)
+      .map(s => s.trim())
+      .filter(Boolean);
+  }
+
+  async function loadSheetMap(){
+    const csvText = await fetch(SHEET_CSV_URL, { cache: 'no-store' }).then(r => r.text());
+    const rows = parseCSV(csvText);
+    if (!rows.length) return new Map();
+
+    const headers = rows[0].map(h => h.trim().toLowerCase());
+    const idx = (name) => headers.indexOf(name.toLowerCase());
+
+    const iLot = idx('lot id');
+    const iStatus = idx('status');
+    const iPrice = idx('price');
+    const iSize = idx('lot size');
+    const iNotes = idx('notes');
+    const iReserve = idx('reserve');
+
+    const map = new Map();
+
+    for (let r=1; r<rows.length; r++){
+      const row = rows[r];
+      const lotIdRaw = row[iLot] ?? '';
+      const lotKey = normalizeLotId(lotIdRaw);
+      if (!lotKey) continue;
+
+      map.set(lotKey, {
+        lotId: lotKey,
+        status: row[iStatus] ?? '',
+        price: row[iPrice] ?? '',
+        lotSize: row[iSize] ?? '',
+        notes: row[iNotes] ?? '',
+        reserve: (iReserve >= 0 ? (row[iReserve] ?? '') : '')
+      });
     }
-    #close { float:right; cursor:pointer; opacity:.6; }
-    #close:hover { opacity:1; }
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <h1>Withers Estates</h1>
-    <div id="svgWrap">
-      <svg id="lotSvg" viewBox="0 0 1000 1400" preserveAspectRatio="xMidYMid meet"></svg>
-    </div>
-  </div>
 
-  <div id="popup">
-    <div id="close">✕</div>
-    <h3 id="pTitle"></h3>
-    <div class="meta" id="pMeta"></div>
-    <ul id="pNotes"></ul>
-    <a class="btn" id="pReserve" href="#" target="_blank" rel="noopener">Reserve Lot</a>
-  </div>
+    return map;
+  }
 
-  <script>
-    const LOTS_JSON_URL = 'withers-estates-lots1.json';
+  async function main(){
+    const [shapeData, sheetMap] = await Promise.all([
+      fetch(LOTS_JSON_URL).then(r => r.json()),
+      loadSheetMap()
+    ]);
 
-    // Temporary: a single reserve link (you can later make per-lot)
-    const DEFAULT_RESERVE_URL = 'https://form.jotform.com/260066170475051';
+    // Draw lots
+    shapeData.shapes
+      .filter(s => s.type === 'lot' && Array.isArray(s.points) && s.points.length)
+      .forEach(s => {
+        const lotLabel = s.label || s.id;
+        const lotKey = normalizeLotId(lotLabel);
+        const row = sheetMap.get(lotKey);
 
-    const svg = document.getElementById('lotSvg');
-    const popup = document.getElementById('popup');
-    const pTitle = document.getElementById('pTitle');
-    const pMeta  = document.getElementById('pMeta');
-    const pNotes = document.getElementById('pNotes');
-    const pReserve = document.getElementById('pReserve');
-    document.getElementById('close').onclick = () => popup.style.display = 'none';
+        const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+        path.setAttribute('d', polygonPath(s.points));
+        path.setAttribute('class', 'lot');
+        path.dataset.lot = lotKey;
 
-    function polygonPath(points){
-      // points = [{x,y},...]
-      return points.map((pt,i)=> (i===0?`M ${pt.x} ${pt.y}`:`L ${pt.x} ${pt.y}`)).join(' ') + ' Z';
-    }
+        // Color by status (from sheet)
+        path.style.fill = statusColor(row?.status);
 
-    async function main(){
-      const data = await fetch(LOTS_JSON_URL).then(r => r.json());
+        path.addEventListener('click', () => {
+          popup.style.display = 'block';
 
-      // Build lots
-      data.shapes
-        .filter(s => s.type === 'lot' && s.points && s.points.length)
-        .forEach(s => {
-          const path = document.createElementNS('http://www.w3.org/2000/svg','path');
-          path.setAttribute('d', polygonPath(s.points));
-          path.setAttribute('class', 'lot');
-          path.dataset.lot = s.label || s.id;
+          const status = row?.status || '—';
+          const price = parseMoney(row?.price) || (row?.price || '—');
+          const lotSize = row?.lotSize || '—';
+          const bullets = notesToBullets(row?.notes);
 
-          path.addEventListener('click', () => {
-            // For now: show label + placeholder meta/notes
-            popup.style.display = 'block';
-            pTitle.textContent = path.dataset.lot;
-            pMeta.textContent = 'Click-to-view lot details (next step: connect Google Sheet)';
-            pNotes.innerHTML = '';
-            // sample bullets (we’ll swap these with your sheet data)
-            ['Lot boundaries only map','Interactive lot selection','Reserve link attached'].forEach(t=>{
-              const li = document.createElement('li'); li.textContent=t; pNotes.appendChild(li);
+          pTitle.textContent = lotKey;
+          pMeta.textContent = `Status: ${status} • Price: ${price} • Lot Size: ${lotSize}`;
+
+          pNotes.innerHTML = '';
+          (bullets.length ? bullets : ['Lot details coming from Google Sheet (add Notes to populate bullets)'])
+            .forEach(t => {
+              const li = document.createElement('li');
+              li.textContent = t;
+              pNotes.appendChild(li);
             });
 
-            pReserve.href = DEFAULT_RESERVE_URL;
-          });
-
-          svg.appendChild(path);
+          const reserveUrl = (row?.reserve || '').trim() || DEFAULT_RESERVE_URL;
+          pReserve.href = reserveUrl;
         });
 
-      // Auto-fit SVG viewBox to your shapes
-      const bb = svg.getBBox();
-      svg.setAttribute('viewBox', `${bb.x} ${bb.y} ${bb.width} ${bb.height}`);
-    }
+        svg.appendChild(path);
+      });
 
-    main().catch(err => {
-      console.error(err);
-      alert('Could not load lot JSON. Check filename/path.');
-    });
-  </script>
-</body>
-</html>
+    // Fit viewBox to all drawn shapes
+    const bb = svg.getBBox();
+    svg.setAttribute('viewBox', `${bb.x} ${bb.y} ${bb.width} ${bb.height}`);
+  }
+
+  main().catch(err => {
+    console.error(err);
+    alert('Could not load lot data. Check JSON filename + Sheet headers.');
+  });
+</script>
