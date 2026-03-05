@@ -244,16 +244,28 @@
     }
 
     function normalizeLotId(raw){
-      if (!raw) return '';
-      const s = String(raw).trim().toUpperCase().replace(/[–—]/g,'-').replace(/#/g,'').replace(/\s+/g,' ');
+  if (!raw) return '';
+  let s = String(raw)
+    .trim()
+    .toUpperCase()
+    .replace(/[–—]/g,'-')
+    .replace(/#/g,'')
+    .replace(/\s+/g,' ');
 
-      const m = s.match(/BLOCK\s*(\d+)\s*[- ]?\s*LOT\s*(\d+)/i);
-      if (m) return `B${m[1]} - L${m[2]}`;
+  // Handle: "B1-L1", "B1 -L1", "B1- L1", "B1 - L1"
+  const compact = s.match(/^B\s*(\d+)\s*-\s*L\s*(\d+)$/i);
+  if (compact) return `B${compact[1]} - L${compact[2]}`;
 
-      const m2 = s.match(/B\s*(\d+)\s*[- ]?\s*L\s*(\d+)/i);
-      if (m2) return `B${m2[1]} - L${m2[2]}`;
+  // Handle: "BLOCK 1 LOT 1" etc
+  const m = s.match(/BLOCK\s*(\d+)\s*[- ]?\s*LOT\s*(\d+)/i);
+  if (m) return `B${m[1]} - L${m[2]}`;
 
-      return s;
+  // Handle: "B 1 L 1" without dash
+  const m3 = s.match(/^B\s*(\d+)\s+L\s*(\d+)$/i);
+  if (m3) return `B${m3[1]} - L${m3[2]}`;
+
+  return s;
+}
     }
 
     function formatLabel(lotKey){
@@ -419,7 +431,7 @@
       for (const s of shapes){
         const rawName = (s.label || s.name || '');
         const lotKey = normalizeLotId(rawName || s.id || '');
-        const isLot = /^B\d+\s*-\s*L\d+$/i.test(lotKey);
+        const isLot = /^B\d+\s*-\s*L\d+$/i.test(lotKey) || /^B\d+-L\d+$/i.test(String(rawName || '').trim().toUpperCase());
 
         // FEATURES / ROADS / AMENITIES (anything not a lot)
         if (!isLot){
