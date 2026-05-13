@@ -13,7 +13,7 @@
       --unlisted: rgba(0,0,0,.06);
 
       --outline:#111;
-      --bg:#f3f4f6;              /* modern light gray */
+      --bg:#f3f4f6;
       --card:#ffffff;
       --muted:#6b7280;
       --panelBorder: rgba(0,0,0,.10);
@@ -35,7 +35,6 @@
       letter-spacing:.2px;
     }
 
-    /* REMOVE / HIDE the debug row completely */
     #debug{ display:none !important; }
 
     .topbar{
@@ -45,6 +44,7 @@
       flex-wrap:wrap;
       margin: 0 0 12px;
     }
+
     .btnSmall{
       border:1px solid rgba(0,0,0,.15);
       background:#fff;
@@ -55,6 +55,7 @@
       cursor:pointer;
       box-shadow: 0 1px 0 rgba(0,0,0,.04);
     }
+
     .btnSmall.active{
       background:#111;
       color:#fff;
@@ -62,14 +63,24 @@
     }
 
     .legend{
-      display:flex; gap:12px; align-items:center; justify-content:center;
-      margin:0 0 14px; font-size:13px; flex-wrap:wrap;
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:center;
+      margin:0 0 14px;
+      font-size:13px;
+      flex-wrap:wrap;
       color:#111;
     }
+
     .dot{
-      width:10px;height:10px;border-radius:50%;
-      display:inline-block; margin-right:6px;
-      border:1px solid rgba(0,0,0,.25); vertical-align:middle;
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      display:inline-block;
+      margin-right:6px;
+      border:1px solid rgba(0,0,0,.25);
+      vertical-align:middle;
     }
 
     .mapCard{
@@ -79,24 +90,29 @@
       overflow:hidden;
       box-shadow: 0 10px 30px rgba(0,0,0,.06);
     }
+
     .svgWrap{
       width:100%;
       height:780px;
       background:var(--bg);
       position:relative;
     }
-    svg{ width:100%; height:100%; display:block; }
 
-    /* Lots */
+    svg{
+      width:100%;
+      height:100%;
+      display:block;
+    }
+
     .lot{
       cursor:pointer;
       transition: filter .12s ease, opacity .12s ease;
     }
+
     .lot:hover{
       filter: drop-shadow(0 0 10px var(--hoverGlow));
     }
 
-    /* Lot labels */
     .lotLabel{
       font-size: 10px;
       font-weight: 600;
@@ -107,7 +123,6 @@
       stroke-width: 2px;
     }
 
-    /* Premium icons line under label */
     .premiumLabel{
       font-size: 12px;
       font-weight: 800;
@@ -118,7 +133,17 @@
       stroke-width: 3px;
     }
 
-    /* Hover tooltip */
+    .roadLabel{
+      font-size: 22px;
+      font-weight: 900;
+      fill: #444;
+      letter-spacing: 2px;
+      pointer-events:none;
+      paint-order: stroke fill;
+      stroke: rgba(255,255,255,.95);
+      stroke-width: 4px;
+    }
+
     .we-tooltip{
       position:absolute;
       pointer-events:none;
@@ -136,9 +161,9 @@
       z-index:20;
       box-shadow: 0 10px 30px rgba(0,0,0,.20);
     }
+
     .we-tooltip.show{ opacity:1; }
 
-    /* Modal */
     .modalBack{
       position:fixed;
       inset:0;
@@ -149,6 +174,7 @@
       z-index:999;
       padding:16px;
     }
+
     .modalBack.show{ display:flex; }
 
     .modal{
@@ -159,6 +185,7 @@
       box-shadow: 0 20px 70px rgba(0,0,0,.35);
       overflow:hidden;
     }
+
     .modalHead{
       padding:14px 16px;
       display:flex;
@@ -167,12 +194,14 @@
       gap:12px;
       border-bottom: 1px solid rgba(0,0,0,.08);
     }
+
     .modalTitle{
       margin:0;
       font-size:18px;
       line-height:1.2;
       font-weight:900;
     }
+
     .modalClose{
       border:none;
       background:transparent;
@@ -181,27 +210,32 @@
       color:#666;
       padding:0 4px;
     }
+
     .modalBody{
       padding:14px 16px 16px;
     }
+
     .meta{
       margin:6px 0 0;
       font-size:13px;
       color:var(--muted);
       line-height:1.35;
     }
+
     .kv{
       margin:12px 0 0;
       padding-left:18px;
       font-size:14px;
       line-height:1.35;
     }
+
     .pillRow{
       margin-top:10px;
       display:flex;
       gap:8px;
       flex-wrap:wrap;
     }
+
     .pill{
       display:inline-flex;
       align-items:center;
@@ -214,6 +248,7 @@
       font-weight:800;
       color:#111;
     }
+
     .reserveBtn{
       display:inline-block;
       margin-top:14px;
@@ -240,7 +275,6 @@
     <h1>Withers Estates</h1>
     <div id="debug">Loading…</div>
 
-    <!-- Filters -->
     <div class="topbar">
       <button class="btnSmall active" data-filter="all">All Lots</button>
       <button class="btnSmall" data-filter="available">Available</button>
@@ -248,7 +282,6 @@
       <button class="btnSmall" data-filter="sold">Sold</button>
     </div>
 
-    <!-- Legend -->
     <div class="legend">
       <span><i class="dot" style="background:var(--available)"></i>Available</span>
       <span><i class="dot" style="background:var(--pending)"></i>Pending</span>
@@ -264,7 +297,6 @@
     </div>
   </div>
 
-  <!-- Modal -->
   <div class="modalBack" id="modalBack" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true">
       <div class="modalHead">
@@ -283,25 +315,15 @@
   </div>
 
   <script>
-    // ====== YOUR SOURCES ======
     const LOTS_JSON_URL = 'withers-estates-lots2.json';
     const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRLq9bYnDWEQnE4-GUmwyYStBWKlOdrCy36utkl0cHahd7u-7YlkHn-0BgmS6L9NyH_Qj6nPzi4IPs3/pub?output=csv';
     const DEFAULT_RESERVE_URL = 'https://form.jotform.com/260066170475051';
-    // ==========================
 
-    // Label mode: "BLOCK_AND_LOT" shows "B2 - L1", "LOT_ONLY" shows "L1"
     const LABEL_MODE = "BLOCK_AND_LOT";
 
-    // ✅ Put your premium lots here (the “far right luxury view lots”)
-    // Use either "B1-L6" or "B1 - L6" — both will match.
-    const PREMIUM_LOTS = new Set([
-      // EXAMPLES (replace with yours):
-      // 'B1-L6','B1-L7','B1-L8','B1-L9',
-      // 'B4-L1','B4-L2','B4-L3','B5-L6'
-    ]);
+    const PREMIUM_LOTS = new Set([]);
 
-    // Premium icons (feel free to change)
-    const PREMIUM_ICONS = '🏔 ⛪ 🌾'; // Teton views, temple view, country luxury
+    const PREMIUM_ICONS = '🏔 ⛪ 🌾';
 
     const svg = document.getElementById('lotSvg');
     const svgWrap = document.getElementById('svgWrap');
@@ -318,19 +340,22 @@
     const filterButtons = Array.from(document.querySelectorAll('.btnSmall'));
     let currentFilter = 'all';
 
-    // --- Modal controls
     function openModal(){
       modalBack.classList.add('show');
       modalBack.setAttribute('aria-hidden','false');
     }
+
     function closeModal(){
       modalBack.classList.remove('show');
       modalBack.setAttribute('aria-hidden','true');
     }
+
     modalClose.addEventListener('click', closeModal);
+
     modalBack.addEventListener('click', (e)=>{
       if (e.target === modalBack) closeModal();
     });
+
     document.addEventListener('keydown', (e)=>{
       if (e.key === 'Escape') closeModal();
     });
@@ -345,6 +370,7 @@
 
     function polygonCentroid(points){
       let x = 0, y = 0, a = 0;
+
       for (let i=0, j=points.length-1; i<points.length; j=i++){
         const p1 = points[j], p2 = points[i];
         const f = (p1.x * p2.y) - (p2.x * p1.y);
@@ -352,24 +378,27 @@
         x += (p1.x + p2.x) * f;
         y += (p1.y + p2.y) * f;
       }
+
       a *= 0.5;
+
       if (a === 0){
         const avg = points.reduce((acc,p)=>({x:acc.x+p.x,y:acc.y+p.y}),{x:0,y:0});
         return { x: avg.x / points.length, y: avg.y / points.length };
       }
+
       return { x: x / (6*a), y: y / (6*a) };
     }
 
-    // Handles: "B1-L1", "B1 - L1", "B1 — L1", "Block 1 Lot 1"
     function normalizeLotId(raw){
       if (!raw) return '';
+
       const s = String(raw)
         .trim()
         .toUpperCase()
         .replace(/[–—]/g,'-')
         .replace(/#/g,'')
         .replace(/\s+/g,' ')
-        .replace(/\s*-\s*/g,'-'); // normalize hyphen spacing to B1-L1
+        .replace(/\s*-\s*/g,'-');
 
       const m = s.match(/BLOCK\s*(\d+)\s*[- ]?\s*LOT\s*(\d+)/i);
       if (m) return `B${m[1]}-L${m[2]}`;
@@ -382,11 +411,12 @@
 
     function displayLotId(normKey){
       if (!normKey) return '';
+
       if (LABEL_MODE === 'LOT_ONLY'){
         const m = normKey.match(/L(\d+)/i);
         return m ? `L${m[1]}` : normKey;
       }
-      // show as "B1 - L1" for readability
+
       return normKey.replace('-', ' - ');
     }
 
@@ -396,27 +426,38 @@
 
     function statusKey(status){
       const st = String(status || '').trim().toLowerCase();
+
       if (st.includes('sold')) return 'sold';
       if (st.includes('pend')) return 'pending';
       if (st.includes('avail')) return 'available';
+
       return 'unlisted';
     }
 
     function fillForStatus(status){
       const k = statusKey(status);
+
       if (k === 'sold') return getCssVar('--sold');
       if (k === 'pending') return getCssVar('--pending');
       if (k === 'available') return getCssVar('--available');
+
       return getCssVar('--unlisted');
     }
 
     function parseMoney(val){
       if (val == null) return '';
+
       const n = String(val).replace(/[^0-9.]/g,'').trim();
       if (!n) return '';
+
       const num = Number(n);
       if (Number.isNaN(num)) return '';
-      return num.toLocaleString(undefined, { style:'currency', currency:'USD', maximumFractionDigits:0 });
+
+      return num.toLocaleString(undefined, {
+        style:'currency',
+        currency:'USD',
+        maximumFractionDigits:0
+      });
     }
 
     function parseCSV(text){
@@ -429,17 +470,32 @@
         const c = text[i];
         const next = text[i+1];
 
-        if (c === '"' && inQuotes && next === '"'){ cur += '"'; i++; continue; }
-        if (c === '"'){ inQuotes = !inQuotes; continue; }
-        if (c === ',' && !inQuotes){ row.push(cur); cur=''; continue; }
+        if (c === '"' && inQuotes && next === '"'){
+          cur += '"';
+          i++;
+          continue;
+        }
+
+        if (c === '"'){
+          inQuotes = !inQuotes;
+          continue;
+        }
+
+        if (c === ',' && !inQuotes){
+          row.push(cur);
+          cur='';
+          continue;
+        }
 
         if ((c === '\n' || c === '\r') && !inQuotes){
           if (c === '\r' && next === '\n') i++;
           row.push(cur);
           if (row.some(v => String(v).trim() !== '')) rows.push(row);
-          row = []; cur='';
+          row = [];
+          cur='';
           continue;
         }
+
         cur += c;
       }
 
@@ -447,37 +503,58 @@
         row.push(cur);
         if (row.some(v => String(v).trim() !== '')) rows.push(row);
       }
+
       return rows;
     }
 
     function rowsToObjects(rows){
       if (!rows || !rows.length) return [];
+
       const headers = rows[0].map(h => String(h).trim());
       const objs = [];
+
       for (let i=1; i<rows.length; i++){
         const r = rows[i];
         const o = {};
         headers.forEach((h, idx) => o[h] = r[idx] ?? '');
         objs.push(o);
       }
+
       return objs;
     }
 
     function setViewBoxToFit(allPoints){
       const xs = allPoints.map(p => p.x);
       const ys = allPoints.map(p => p.y);
+
       const minX = Math.min(...xs), maxX = Math.max(...xs);
       const minY = Math.min(...ys), maxY = Math.max(...ys);
-      const pad = 26;
-      const vb = { x:minX-pad, y:minY-pad, w:(maxX-minX)+pad*2, h:(maxY-minY)+pad*2 };
+
+      const pad = 70;
+
+      const vb = {
+        x:minX-pad,
+        y:minY-pad,
+        w:(maxX-minX)+pad*2,
+        h:(maxY-minY)+pad*2
+      };
+
       svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+
       return vb;
     }
 
     function getViewBox(){
       const vb = svg.getAttribute('viewBox').split(' ').map(Number);
-      return { x:vb[0], y:vb[1], w:vb[2], h:vb[3] };
+
+      return {
+        x:vb[0],
+        y:vb[1],
+        w:vb[2],
+        h:vb[3]
+      };
     }
+
     function setViewBox(vb){
       svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
     }
@@ -487,11 +564,12 @@
         .split(/\n+/)
         .map(v => v.trim())
         .filter(Boolean)
-        .map(v => v.replace(/^•\s*/,'')); // remove bullet if present
+        .map(v => v.replace(/^•\s*/,''));
     }
 
     function applyFilter(){
       const lotPaths = svg.querySelectorAll('.lot[data-status]');
+
       lotPaths.forEach(el => {
         const st = el.getAttribute('data-status') || 'unlisted';
         const show = (currentFilter === 'all') || (st === currentFilter);
@@ -499,6 +577,7 @@
       });
 
       const labels = svg.querySelectorAll('text[data-for]');
+
       labels.forEach(t => {
         const st = t.getAttribute('data-status') || 'unlisted';
         const show = (currentFilter === 'all') || (st === currentFilter);
@@ -515,28 +594,33 @@
       });
     });
 
-    // --- Pan + zoom
     let isDragging = false;
     let dragStart = {x:0,y:0};
     let vbStart = null;
 
     svgWrap.addEventListener('wheel', (e)=>{
       e.preventDefault();
-      const vb = getViewBox();
 
-      // mouse position relative to svgWrap
+      const vb = getViewBox();
       const rect = svgWrap.getBoundingClientRect();
+
       const mx = (e.clientX - rect.left) / rect.width;
       const my = (e.clientY - rect.top) / rect.height;
 
-      const zoomFactor = (e.deltaY > 0) ? 1.08 : 0.92; // wheel down = zoom out
+      const zoomFactor = (e.deltaY > 0) ? 1.08 : 0.92;
+
       const newW = vb.w * zoomFactor;
       const newH = vb.h * zoomFactor;
 
       const dx = (vb.w - newW) * mx;
       const dy = (vb.h - newH) * my;
 
-      setViewBox({ x: vb.x + dx, y: vb.y + dy, w: newW, h: newH });
+      setViewBox({
+        x: vb.x + dx,
+        y: vb.y + dy,
+        w: newW,
+        h: newH
+      });
     }, { passive:false });
 
     svgWrap.addEventListener('mousedown', (e)=>{
@@ -544,19 +628,29 @@
       dragStart = { x:e.clientX, y:e.clientY };
       vbStart = getViewBox();
     });
+
     window.addEventListener('mousemove', (e)=>{
       if (!isDragging) return;
+
       const rect = svgWrap.getBoundingClientRect();
+
       const dxPx = e.clientX - dragStart.x;
       const dyPx = e.clientY - dragStart.y;
 
-      // Convert pixels to viewBox units
       const dx = -(dxPx / rect.width) * vbStart.w;
       const dy = -(dyPx / rect.height) * vbStart.h;
 
-      setViewBox({ x: vbStart.x + dx, y: vbStart.y + dy, w: vbStart.w, h: vbStart.h });
+      setViewBox({
+        x: vbStart.x + dx,
+        y: vbStart.y + dy,
+        w: vbStart.w,
+        h: vbStart.h
+      });
     });
-    window.addEventListener('mouseup', ()=>{ isDragging = false; });
+
+    window.addEventListener('mouseup', ()=>{
+      isDragging = false;
+    });
 
     async function main(){
       const lotsRes = await fetch(LOTS_JSON_URL, { cache: 'no-store' });
@@ -569,40 +663,68 @@
 
       const sheetObjs = rowsToObjects(parseCSV(csvText));
 
-      // lookup by normalized lot id
       const sheetByLot = new Map();
+
       for (const row of sheetObjs){
         const key = normalizeLotId(row['Lot ID'] || row['LotID'] || row['Lot'] || row['Lot Id'] || '');
+
         if (key) sheetByLot.set(key, row);
       }
 
       svg.innerHTML = '';
-      const shapes = (shapeData.shapes || []).filter(s => Array.isArray(s.points) && s.points.length);
 
-      // viewBox fit
-      const allPts = shapes.flatMap(s => s.points);
+      const shapes = shapeData.shapes || [];
+      const drawableShapes = shapes.filter(s => Array.isArray(s.points) && s.points.length);
+      const allPts = drawableShapes.flatMap(s => s.points);
+
       if (allPts.length) setViewBoxToFit(allPts);
 
-      // groups
       const gRoads = document.createElementNS('http://www.w3.org/2000/svg','g');
       const gLots = document.createElementNS('http://www.w3.org/2000/svg','g');
       const gLabels = document.createElementNS('http://www.w3.org/2000/svg','g');
+      const gRoadLabels = document.createElementNS('http://www.w3.org/2000/svg','g');
+
       svg.appendChild(gRoads);
       svg.appendChild(gLots);
       svg.appendChild(gLabels);
+      svg.appendChild(gRoadLabels);
 
       for (const s of shapes){
+
+        if (s.type === 'label') {
+          const roadLabel = document.createElementNS('http://www.w3.org/2000/svg','text');
+
+          roadLabel.setAttribute('x', s.x);
+          roadLabel.setAttribute('y', s.y);
+          roadLabel.setAttribute('text-anchor', 'middle');
+          roadLabel.setAttribute('dominant-baseline', 'middle');
+          roadLabel.setAttribute('class', 'roadLabel');
+
+          if (s.rotation) {
+            roadLabel.setAttribute('transform', `rotate(${s.rotation} ${s.x} ${s.y})`);
+          }
+
+          roadLabel.textContent = s.text || s.label || '';
+          gRoadLabels.appendChild(roadLabel);
+          continue;
+        }
+
+        if (!Array.isArray(s.points) || !s.points.length) {
+          continue;
+        }
+
         const rawId = (s.label || s.name || s.id || '');
         const lotKey = normalizeLotId(rawId);
         const isLot = /^B\d+-L\d+$/i.test(lotKey);
 
-        // --- Non-lot shapes (roads/features): draw ONLY, NO LABELS (removes street names)
         if (!isLot){
           const road = document.createElementNS('http://www.w3.org/2000/svg','path');
+
           road.setAttribute('d', polygonPath(s.points));
           road.setAttribute('fill', getCssVar('--roadFill'));
           road.setAttribute('stroke', getCssVar('--roadStroke'));
           road.setAttribute('stroke-width', '2');
+
           gRoads.appendChild(road);
           continue;
         }
@@ -616,8 +738,8 @@
 
         const stKey = statusKey(status);
 
-        // Lot path
         const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+
         path.setAttribute('d', polygonPath(s.points));
         path.setAttribute('fill', fillForStatus(status));
         path.setAttribute('stroke', '#111');
@@ -625,15 +747,16 @@
         path.setAttribute('class', 'lot');
         path.setAttribute('data-lot', lotKey);
         path.setAttribute('data-status', stKey);
+
         gLots.appendChild(path);
 
         const displayId = displayLotId(lotKey);
         const priceTxt = price ? parseMoney(price) : '';
         const statusTxt = status || '';
 
-        // Hover tooltip
         path.addEventListener('mousemove', (e)=>{
           const rect = svgWrap.getBoundingClientRect();
+
           const x = e.clientX - rect.left;
           const y = e.clientY - rect.top;
 
@@ -642,22 +765,25 @@
           tooltip.style.top  = y + 'px';
           tooltip.classList.add('show');
         });
+
         path.addEventListener('mouseleave', ()=>{
           tooltip.classList.remove('show');
         });
 
-        // Click -> Modal popup
         path.addEventListener('click', ()=>{
           mTitle.textContent = displayId;
 
           const metaParts = [];
+
           metaParts.push(`Status: ${statusTxt || '—'}`);
+
           if (price) metaParts.push(`Price: ${priceTxt || price}`);
           if (lotSize) metaParts.push(`Lot Size: ${lotSize}`);
+
           mMeta.textContent = metaParts.join(' • ');
 
-          // pills (premium)
           mPills.innerHTML = '';
+
           if (isPremium(lotKey)){
             const pill = document.createElement('div');
             pill.className = 'pill';
@@ -665,9 +791,10 @@
             mPills.appendChild(pill);
           }
 
-          // notes
           mNotes.innerHTML = '';
+
           const lines = notesToLines(notes);
+
           if (lines.length){
             lines.forEach(line=>{
               const li = document.createElement('li');
@@ -684,10 +811,10 @@
           openModal();
         });
 
-        // Lot label centered
         const c = polygonCentroid(s.points);
 
         const label = document.createElementNS('http://www.w3.org/2000/svg','text');
+
         label.setAttribute('x', c.x);
         label.setAttribute('y', c.y);
         label.setAttribute('text-anchor', 'middle');
@@ -695,12 +822,14 @@
         label.setAttribute('class', 'lotLabel');
         label.setAttribute('data-for', lotKey);
         label.setAttribute('data-status', stKey);
+
         label.textContent = displayId;
+
         gLabels.appendChild(label);
 
-        // Premium icon line under label
         if (isPremium(lotKey)){
           const icon = document.createElementNS('http://www.w3.org/2000/svg','text');
+
           icon.setAttribute('x', c.x);
           icon.setAttribute('y', c.y + 16);
           icon.setAttribute('text-anchor', 'middle');
@@ -708,7 +837,9 @@
           icon.setAttribute('class', 'premiumLabel');
           icon.setAttribute('data-for', lotKey);
           icon.setAttribute('data-status', stKey);
+
           icon.textContent = PREMIUM_ICONS;
+
           gLabels.appendChild(icon);
         }
       }
@@ -718,8 +849,6 @@
 
     main().catch(err => {
       console.error(err);
-      // No debug on page, so if you want errors you can open DevTools console
-      // or temporarily turn #debug back on.
     });
   </script>
 </body>
